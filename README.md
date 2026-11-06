@@ -32,6 +32,15 @@ g++ -O2 -std=c++17 -Iimgui gui_imgui.cpp imgui/imgui.cpp imgui/imgui_draw.cpp im
 g++ -O2 -std=c++17 main.cpp -o StreamFetch_cli.exe
 ```
 
+## Legal Disclaimer & Compliance
+
+This software is developed strictly for educational, research, and personal archival purposes.
+
+- **Content Rights:** Users are solely responsible for ensuring they have the legal right to access and download media. Only download media you own, public domain works, or content under open licenses (e.g., Creative Commons).
+- **Platform Terms:** Automated media retrieval may violate platform terms of service. Authors assume no liability for misuse, account restrictions, or copyright infringement.
+- **No DRM Circumvention:** StreamFetch does not decrypt, bypass, or circumvent DRM protection technologies (e.g., Widevine).
+- **Trademark Notice:** StreamFetch is an independent project and is not affiliated with, authorized, maintained, or endorsed by YouTube or Google LLC.
+
 ## License
 
-MIT License. Educational and personal archival purposes only.
+Released under the [MIT License](LICENSE). Copyright (c) 2026 karthik-xd.
