@@ -1,5 +1,7 @@
 # Binaries
 *.exe
+!StreamFetch.exe
+!StreamFetch_cli.exe
 ffmpeg.exe
 ffprobe.exe
 

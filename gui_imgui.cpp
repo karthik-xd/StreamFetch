@@ -814,10 +814,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     RegisterClassEx(&wc);
 
     // Initial Window Size & Position
-    int width = 840;
-    int height = 960;
-    int posX = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
-    int posY = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
+    int screenW = GetSystemMetrics(SM_CXSCREEN);
+    int screenH = GetSystemMetrics(SM_CYSCREEN);
+
+    int width = std::min(820, screenW - 60);
+    int height = std::min(740, screenH - 100);
+    int posX = std::max(20, (screenW - width) / 2);
+    int posY = std::max(30, (screenH - height) / 2);
 
     HWND hwnd = CreateWindow(
         wc.lpszClassName, _T("StreamFetch"),
