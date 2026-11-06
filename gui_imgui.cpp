@@ -49,6 +49,9 @@ static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
 static IDXGISwapChain*          g_pSwapChain = nullptr;
 static ID3D11RenderTargetView*  g_mainRenderTargetView = nullptr;
 static HWND                     g_hWnd = nullptr;
+static ImFont*                   g_fontRegular = nullptr;
+static ImFont*                   g_fontTitle = nullptr;
+static ImFont*                   g_fontBold = nullptr;
 
 bool CreateDeviceD3D(HWND hWnd);
 void CleanupDeviceD3D();
@@ -82,6 +85,9 @@ struct AppState {
     int selected_quality_idx = 0;
     std::vector<QualityOption> qualities;
     std::string audio_size_str;
+
+    int selected_video_format_idx = 0; // 0 = MP4, 1 = MKV, 2 = WEBM, 3 = MOV, 4 = AVI
+    int selected_audio_format_idx = 0; // 0 = MP3, 1 = M4A, 2 = WAV, 3 = FLAC, 4 = OPUS
 
     bool enable_slice = false;
     int slice_start = 0;
@@ -372,16 +378,16 @@ void SetupElectricSocialStyle() {
     ImGuiStyle& style = ImGui::GetStyle();
     ImVec4* colors = style.Colors;
 
-    colors[ImGuiCol_Text]                  = ImVec4(0.945f, 0.961f, 0.976f, 1.00f); // #F1F5F9
-    colors[ImGuiCol_TextDisabled]          = ImVec4(0.580f, 0.639f, 0.722f, 1.00f); // #94A3B8
-    colors[ImGuiCol_WindowBg]              = ImVec4(0.031f, 0.059f, 0.125f, 1.00f); // #080F20
-    colors[ImGuiCol_ChildBg]               = ImVec4(0.067f, 0.110f, 0.196f, 1.00f); // #111C32
+    colors[ImGuiCol_Text]                  = ImVec4(0.945f, 0.961f, 0.976f, 1.00f); // #F1F5F9 Soft White
+    colors[ImGuiCol_TextDisabled]          = ImVec4(0.580f, 0.639f, 0.722f, 1.00f); // #94A3B8 Muted Text
+    colors[ImGuiCol_WindowBg]              = ImVec4(0.031f, 0.059f, 0.125f, 1.00f); // #080F20 Deep Navy
+    colors[ImGuiCol_ChildBg]               = ImVec4(0.067f, 0.110f, 0.196f, 1.00f); // #111C32 Surface
     colors[ImGuiCol_PopupBg]               = ImVec4(0.067f, 0.110f, 0.196f, 0.98f); // #111C32
-    colors[ImGuiCol_Border]                = ImVec4(0.118f, 0.161f, 0.231f, 1.00f); // #1E293B
+    colors[ImGuiCol_Border]                = ImVec4(0.140f, 0.205f, 0.325f, 1.00f); // Crisp visible card border
     colors[ImGuiCol_BorderShadow]          = ImVec4(0.000f, 0.000f, 0.000f, 0.00f);
-    colors[ImGuiCol_FrameBg]               = ImVec4(0.086f, 0.133f, 0.235f, 1.00f); // #16223C
-    colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.125f, 0.188f, 0.314f, 1.00f);
-    colors[ImGuiCol_FrameBgActive]         = ImVec4(0.157f, 0.235f, 0.392f, 1.00f);
+    colors[ImGuiCol_FrameBg]               = ImVec4(0.045f, 0.080f, 0.150f, 1.00f); // #0B1426 Darker inputs
+    colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.085f, 0.140f, 0.240f, 1.00f);
+    colors[ImGuiCol_FrameBgActive]         = ImVec4(0.120f, 0.190f, 0.320f, 1.00f);
     colors[ImGuiCol_TitleBg]               = ImVec4(0.031f, 0.059f, 0.125f, 1.00f);
     colors[ImGuiCol_TitleBgActive]         = ImVec4(0.067f, 0.110f, 0.196f, 1.00f);
     colors[ImGuiCol_TitleBgCollapsed]      = ImVec4(0.031f, 0.059f, 0.125f, 0.75f);
@@ -390,8 +396,8 @@ void SetupElectricSocialStyle() {
     colors[ImGuiCol_ScrollbarGrab]         = ImVec4(0.145f, 0.220f, 0.365f, 1.00f);
     colors[ImGuiCol_ScrollbarGrabHovered]  = ImVec4(0.231f, 0.510f, 0.965f, 0.80f);
     colors[ImGuiCol_ScrollbarGrabActive]   = ImVec4(0.231f, 0.510f, 0.965f, 1.00f);
-    colors[ImGuiCol_CheckMark]             = ImVec4(0.133f, 0.827f, 0.933f, 1.00f); // #22D3EE
-    colors[ImGuiCol_SliderGrab]            = ImVec4(0.231f, 0.510f, 0.965f, 1.00f); // #3B82F6
+    colors[ImGuiCol_CheckMark]             = ImVec4(0.133f, 0.827f, 0.933f, 1.00f); // #22D3EE Neon Cyan
+    colors[ImGuiCol_SliderGrab]            = ImVec4(0.231f, 0.510f, 0.965f, 1.00f); // #3B82F6 Electric Blue
     colors[ImGuiCol_SliderGrabActive]      = ImVec4(0.133f, 0.827f, 0.933f, 1.00f); // #22D3EE
     colors[ImGuiCol_Button]                = ImVec4(0.231f, 0.510f, 0.965f, 1.00f); // #3B82F6
     colors[ImGuiCol_ButtonHovered]         = ImVec4(0.145f, 0.388f, 0.922f, 1.00f); // #2563EB
@@ -399,7 +405,7 @@ void SetupElectricSocialStyle() {
     colors[ImGuiCol_Header]                = ImVec4(0.145f, 0.220f, 0.365f, 0.80f);
     colors[ImGuiCol_HeaderHovered]         = ImVec4(0.231f, 0.510f, 0.965f, 0.80f);
     colors[ImGuiCol_HeaderActive]          = ImVec4(0.231f, 0.510f, 0.965f, 1.00f);
-    colors[ImGuiCol_Separator]             = ImVec4(0.118f, 0.161f, 0.231f, 1.00f); // #1E293B
+    colors[ImGuiCol_Separator]             = ImVec4(0.140f, 0.205f, 0.325f, 1.00f); // #1E293B
     colors[ImGuiCol_SeparatorHovered]      = ImVec4(0.231f, 0.510f, 0.965f, 0.78f);
     colors[ImGuiCol_SeparatorActive]       = ImVec4(0.231f, 0.510f, 0.965f, 1.00f);
     colors[ImGuiCol_ResizeGrip]            = ImVec4(0.145f, 0.220f, 0.365f, 0.50f);
@@ -409,9 +415,9 @@ void SetupElectricSocialStyle() {
     colors[ImGuiCol_PlotHistogram]         = ImVec4(0.133f, 0.827f, 0.933f, 1.00f);
     colors[ImGuiCol_TextSelectedBg]        = ImVec4(0.231f, 0.510f, 0.965f, 0.35f);
 
-    style.WindowPadding    = ImVec2(16.0f, 16.0f);
+    style.WindowPadding    = ImVec2(18.0f, 18.0f);
     style.FramePadding     = ImVec2(12.0f, 8.0f);
-    style.ItemSpacing      = ImVec2(10.0f, 10.0f);
+    style.ItemSpacing      = ImVec2(12.0f, 11.0f);
     style.ItemInnerSpacing = ImVec2(8.0f, 6.0f);
     style.WindowRounding   = 12.0f;
     style.ChildRounding    = 10.0f;
@@ -517,17 +523,20 @@ void RenderUI() {
     ImGui::Begin("MainContainer", nullptr, flags);
 
     // Header Title
-    ImGui::TextColored(ImVec4(0.133f, 0.827f, 0.933f, 1.0f), "●");
-    ImGui::SameLine();
-    ImGui::TextColored(ImVec4(0.945f, 0.961f, 0.976f, 1.0f), "YouTube Video Downloader (DirectX 11 GPU Edition)");
-    ImGui::Separator();
+    if (g_fontTitle) ImGui::PushFont(g_fontTitle);
+    ImGui::TextColored(ImVec4(0.945f, 0.961f, 0.976f, 1.0f), "StreamFetch");
+    if (g_fontTitle) ImGui::PopFont();
+
+    ImGui::TextColored(ImVec4(0.580f, 0.639f, 0.722f, 1.0f), "High-speed multi-threaded media downloader with lossless range slicing");
     ImGui::Spacing();
 
+    ImGuiWindowFlags cardFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+
     // URL Card
-    ImGui::BeginChild("UrlCard", ImVec2(0, 96), true);
+    ImGui::BeginChild("UrlCard", ImVec2(0, 118), true, cardFlags);
     ImGui::TextColored(ImVec4(0.945f, 0.961f, 0.976f, 1.0f), "Video URL");
 
-    float btnWidth = 110.0f;
+    float btnWidth = 115.0f;
     float inputWidth = ImGui::GetContentRegionAvail().x - btnWidth - 10.0f;
     ImGui::SetNextItemWidth(inputWidth);
     ImGui::InputText("##UrlInput", g_app.url_input, sizeof(g_app.url_input));
@@ -548,10 +557,10 @@ void RenderUI() {
     ImGui::EndChild();
 
     // Save Location Card (User Can Pick Folder / Create New Folder)
-    ImGui::BeginChild("SaveLocationCard", ImVec2(0, 78), true);
+    ImGui::BeginChild("SaveLocationCard", ImVec2(0, 125), true, cardFlags);
     ImGui::TextColored(ImVec4(0.945f, 0.961f, 0.976f, 1.0f), "Save Destination (Folder / New Folder)");
 
-    float browseBtnWidth = 110.0f;
+    float browseBtnWidth = 115.0f;
     float folderInputWidth = ImGui::GetContentRegionAvail().x - browseBtnWidth - 10.0f;
     ImGui::SetNextItemWidth(folderInputWidth);
     ImGui::InputText("##FolderInput", g_app.folder_input, sizeof(g_app.folder_input));
@@ -567,25 +576,29 @@ void RenderUI() {
     ImGui::TextColored(ImVec4(0.580f, 0.639f, 0.722f, 1.0f), "Files will be saved inside this directory (created automatically if new).");
     ImGui::EndChild();
 
-    // Mode & Quality Grid
-    ImGui::BeginChild("SettingsCard", ImVec2(0, 110), true);
-    ImGui::Columns(2, "SettingsColumns", false);
+    // Mode & Quality & Format Grid
+    ImGui::BeginChild("SettingsCard", ImVec2(0, 145), true, cardFlags);
+    ImGui::Columns(3, "SettingsColumns", false);
+    ImGui::SetColumnWidth(0, 210.0f);
+    ImGui::SetColumnWidth(1, 280.0f);
 
     // Left Column: Download Mode
     ImGui::TextColored(ImVec4(0.945f, 0.961f, 0.976f, 1.0f), "Download Mode");
+    ImGui::Spacing();
     ImGui::RadioButton("Video + Audio", &g_app.download_mode, 0);
-    ImGui::SameLine();
     ImGui::RadioButton("Video Only", &g_app.download_mode, 1);
-    ImGui::RadioButton("Audio Only (MP3)", &g_app.download_mode, 2);
+    ImGui::RadioButton("Audio Only", &g_app.download_mode, 2);
 
     ImGui::NextColumn();
 
-    // Right Column: Quality Dropdown with Sizes
-    ImGui::TextColored(ImVec4(0.945f, 0.961f, 0.976f, 1.0f), "Quality & Estimated Size");
+    // Middle Column: Quality Dropdown with Sizes
+    ImGui::TextColored(ImVec4(0.945f, 0.961f, 0.976f, 1.0f), "Quality & Size");
+    ImGui::Spacing();
 
     if (g_app.download_mode == 2) {
-        std::string aText = "Audio Stream ~ " + (g_app.audio_size_str.empty() ? "Standard" : g_app.audio_size_str);
+        std::string aText = "Audio ~ " + (g_app.audio_size_str.empty() ? "Standard" : g_app.audio_size_str);
         ImGui::TextColored(ImVec4(0.133f, 0.827f, 0.933f, 1.0f), "%s", aText.c_str());
+        ImGui::TextColored(ImVec4(0.580f, 0.639f, 0.722f, 1.0f), "YouTube Audio Stream");
     } else {
         if (!g_app.qualities.empty()) {
             std::string preview = g_app.qualities[g_app.selected_quality_idx].display_label;
@@ -604,12 +617,47 @@ void RenderUI() {
             ImGui::TextColored(ImVec4(0.580f, 0.639f, 0.722f, 1.0f), "Best Available");
         }
     }
+
+    ImGui::NextColumn();
+
+    // Right Column: Output Format
+    ImGui::TextColored(ImVec4(0.945f, 0.961f, 0.976f, 1.0f), "File Format");
+    ImGui::Spacing();
+    const char* videoFormats[] = { "MP4 (.mp4)", "MKV (.mkv)", "WEBM (.webm)", "MOV (.mov)", "AVI (.avi)" };
+    const char* audioFormats[] = { "MP3 (.mp3)", "M4A (.m4a)", "WAV (.wav)", "FLAC (.flac)", "OPUS (.opus)" };
+
+    if (g_app.download_mode == 2) {
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::BeginCombo("##AudioFormatCombo", audioFormats[g_app.selected_audio_format_idx])) {
+            for (int i = 0; i < (int)IM_ARRAYSIZE(audioFormats); i++) {
+                bool isSelected = (g_app.selected_audio_format_idx == i);
+                if (ImGui::Selectable(audioFormats[i], isSelected)) {
+                    g_app.selected_audio_format_idx = i;
+                }
+                if (isSelected) ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+    } else {
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::BeginCombo("##VideoFormatCombo", videoFormats[g_app.selected_video_format_idx])) {
+            for (int i = 0; i < (int)IM_ARRAYSIZE(videoFormats); i++) {
+                bool isSelected = (g_app.selected_video_format_idx == i);
+                if (ImGui::Selectable(videoFormats[i], isSelected)) {
+                    g_app.selected_video_format_idx = i;
+                }
+                if (isSelected) ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+    }
+
     ImGui::Columns(1);
     ImGui::EndChild();
 
     // Dual-Point Range Slider (Seekbar)
-    float sliceCardHeight = g_app.enable_slice ? 100.0f : 45.0f;
-    ImGui::BeginChild("SliceCard", ImVec2(0, sliceCardHeight), true);
+    float sliceCardHeight = g_app.enable_slice ? 122.0f : 52.0f;
+    ImGui::BeginChild("SliceCard", ImVec2(0, sliceCardHeight), true, cardFlags);
     ImGui::Checkbox("Slice Video (Custom Range Seekbar)", &g_app.enable_slice);
     if (g_app.enable_slice) {
         ImGui::SameLine();
@@ -618,16 +666,27 @@ void RenderUI() {
     }
     ImGui::EndChild();
 
+    // Format extensions mapping
+    const char* vExts[] = { "mp4", "mkv", "webm", "mov", "avi" };
+    const char* aExts[] = { "mp3", "m4a", "wav", "flac", "opus" };
+    std::string chosenExt = (g_app.download_mode == 2) ?
+                            aExts[g_app.selected_audio_format_idx] :
+                            vExts[g_app.selected_video_format_idx];
+
     // Download Button
-    std::string btnText = g_app.enable_slice ? "Download Video Slice" :
-                         (g_app.download_mode == 2 ? "Download Audio (MP3)" : "Download Video");
+    std::string btnText = g_app.enable_slice ? ("Download Video Slice (" + chosenExt + ")") :
+                         (g_app.download_mode == 2 ? ("Download Audio (" + chosenExt + ")") : ("Download Video (" + chosenExt + ")"));
 
     if (g_app.is_downloading) btnText = "Downloading...";
 
     bool canDownload = !g_app.is_busy && !g_app.is_downloading && strlen(g_app.url_input) > 0;
     if (!canDownload) ImGui::BeginDisabled();
 
-    if (ImGui::Button(btnText.c_str(), ImVec2(-1, 40))) {
+    if (g_fontBold) ImGui::PushFont(g_fontBold);
+    bool clickedDownload = ImGui::Button(btnText.c_str(), ImVec2(-1, 46));
+    if (g_fontBold) ImGui::PopFont();
+
+    if (clickedDownload) {
         // Ensure folder exists or create it
         std::string targetFolder = (strlen(g_app.folder_input) > 0) ? g_app.folder_input : ".";
         try {
@@ -649,7 +708,7 @@ void RenderUI() {
         }
 
         if (g_app.download_mode == 2) {
-            cmd += "-x --audio-format mp3 -f \"bestaudio/best\" ";
+            cmd += "-x --audio-format " + chosenExt + " -f \"bestaudio/best\" ";
         } else {
             int h = (!g_app.qualities.empty()) ? g_app.qualities[g_app.selected_quality_idx].height : 0;
             std::string hFilter = (h > 0) ? "[height<=" + std::to_string(h) + "]" : "";
@@ -658,6 +717,7 @@ void RenderUI() {
             } else {
                 cmd += "-f \"bestvideo" + hFilter + "+bestaudio/best" + hFilter + "/best\" ";
             }
+            cmd += "--merge-output-format " + chosenExt + " --remux-video " + chosenExt + " ";
         }
 
         cmd += "-o \"%(title)s.%(ext)s\" \"" + std::string(g_app.url_input) + "\"";
@@ -671,7 +731,7 @@ void RenderUI() {
     ImGui::Spacing();
 
     // Live Download Progress & Stats Card
-    ImGui::BeginChild("ProgressCard", ImVec2(0, 75), true);
+    ImGui::BeginChild("ProgressCard", ImVec2(0, 85), true, cardFlags);
     DownloadProgress dp;
     {
         std::lock_guard<std::mutex> lock(g_app.progress_mutex);
@@ -694,11 +754,17 @@ void RenderUI() {
 
     float progFraction = (float)(dp.percent / 100.0);
     progFraction = std::max(0.0f, std::min(1.0f, progFraction));
-    ImGui::ProgressBar(progFraction, ImVec2(-1, 14), "");
+    ImGui::ProgressBar(progFraction, ImVec2(-1, 16), "");
     ImGui::EndChild();
 
     // Process Console Log Card
     ImGui::TextColored(ImVec4(0.580f, 0.639f, 0.722f, 1.0f), "Process Console Log");
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 65.0f);
+    if (ImGui::SmallButton("Clear")) {
+        std::lock_guard<std::mutex> lock(g_app.log_mutex);
+        g_app.log_lines.clear();
+    }
+
     ImGui::BeginChild("LogCard", ImVec2(0, -1), true);
     {
         std::lock_guard<std::mutex> lock(g_app.log_mutex);
@@ -727,31 +793,34 @@ void RenderUI() {
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
-    // Initial default download folder (user's Downloads folder or current dir)
+    // Initial default download folder (user's Downloads\StreamFetch folder or current dir)
     PWSTR pDownloads = nullptr;
     if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Downloads, 0, NULL, &pDownloads))) {
         int len = WideCharToMultiByte(CP_UTF8, 0, pDownloads, -1, NULL, 0, NULL, NULL);
         if (len > 0) {
-            WideCharToMultiByte(CP_UTF8, 0, pDownloads, -1, g_app.folder_input, sizeof(g_app.folder_input), NULL, NULL);
+            std::string dFolder(len - 1, 0);
+            WideCharToMultiByte(CP_UTF8, 0, pDownloads, -1, &dFolder[0], len, NULL, NULL);
+            std::string target = dFolder + "\\StreamFetch";
+            strncpy(g_app.folder_input, target.c_str(), sizeof(g_app.folder_input) - 1);
         }
         CoTaskMemFree(pDownloads);
     } else {
-        strcpy(g_app.folder_input, "C:\\Downloads");
+        strcpy(g_app.folder_input, ".\\downloads");
     }
 
     // Register Window Class
     WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, hInstance,
-                      NULL, NULL, NULL, NULL, _T("ImGui_YT_Downloader"), NULL };
+                      NULL, NULL, NULL, NULL, _T("StreamFetch_App"), NULL };
     RegisterClassEx(&wc);
 
     // Initial Window Size & Position
-    int width = 740;
-    int height = 860;
+    int width = 840;
+    int height = 960;
     int posX = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
     int posY = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
 
     HWND hwnd = CreateWindow(
-        wc.lpszClassName, _T("YouTube Downloader (DirectX 11 GPU Edition)"),
+        wc.lpszClassName, _T("StreamFetch"),
         WS_OVERLAPPEDWINDOW, posX, posY, width, height,
         NULL, NULL, wc.hInstance, NULL
     );
@@ -776,6 +845,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    // Load High-DPI Windows Segoe UI Fonts
+    ImFontConfig font_cfg;
+    font_cfg.OversampleH = 3;
+    font_cfg.OversampleV = 2;
+    font_cfg.PixelSnapH = true;
+
+    if (std::filesystem::exists("C:\\Windows\\Fonts\\segoeui.ttf")) {
+        g_fontRegular = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", 17.5f, &font_cfg);
+    }
+    if (std::filesystem::exists("C:\\Windows\\Fonts\\segoeuib.ttf")) {
+        g_fontTitle = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeuib.ttf", 23.0f, &font_cfg);
+        g_fontBold  = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeuib.ttf", 17.5f, &font_cfg);
+    }
+    if (!g_fontRegular) {
+        g_fontRegular = io.Fonts->AddFontDefault();
+    }
 
     SetupElectricSocialStyle();
 
@@ -851,7 +937,8 @@ bool CreateDeviceD3D(HWND hWnd) {
                                                createDeviceFlags, featureLevelArray, 2,
                                                D3D11_SDK_VERSION, &sd, &g_pSwapChain,
                                                &g_pd3dDevice, &featureLevel, &g_pd3dDeviceContext);
-    if (res == DXGI_ERROR_UNSUPPORTED) {
+    if (res != S_OK) {
+        // Automatic fallback to Windows WARP (high-speed CPU rasterizer built into every Windows installation)
         res = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_WARP, nullptr,
                                             createDeviceFlags, featureLevelArray, 2,
                                             D3D11_SDK_VERSION, &sd, &g_pSwapChain,

@@ -22,11 +22,14 @@ Ensure these dependencies exist in your `PATH` or the executable working directo
 
 ## Build
 
-Compile using MSVC (`cl.exe`) or MinGW with DirectX 11 dependencies:
+Compile using MinGW (w64devkit / GCC 16+) or MSVC with DirectX 11 dependencies:
 
 ```powershell
-# Windows MSVC example
-cl.exe /O2 /MD /EHsc gui_imgui.cpp imgui/*.cpp /Iimgui /Fe:StreamFetch.exe /link d3d11.lib dxgi.lib d3dcompiler.lib dwmapi.lib ole32.lib shell32.lib
+# MinGW (GCC) build command
+g++ -O2 -std=c++17 -Iimgui gui_imgui.cpp imgui/imgui.cpp imgui/imgui_draw.cpp imgui/imgui_tables.cpp imgui/imgui_widgets.cpp imgui/imgui_impl_win32.cpp imgui/imgui_impl_dx11.cpp -o StreamFetch.exe -ld3d11 -ldxgi -ld3dcompiler -ldwmapi -lole32 -lshell32 -luuid -mwindows
+
+# CLI version
+g++ -O2 -std=c++17 main.cpp -o StreamFetch_cli.exe
 ```
 
 ## License

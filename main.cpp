@@ -117,6 +117,10 @@ bool execute_download(const std::string& cmd) {
 }
 
 int main() {
+    std::cout << "========================================\n";
+    std::cout << "      StreamFetch (CLI Edition)        \n";
+    std::cout << "========================================\n\n";
+
     std::string url;
     std::cout << "Enter YouTube URL: ";
     if (!std::getline(std::cin, url) || url.empty()) {
