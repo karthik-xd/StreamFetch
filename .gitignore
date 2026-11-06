@@ -1,0 +1,18 @@
+# Binaries
+*.exe
+ffmpeg.exe
+ffprobe.exe
+
+# Media files
+*.mp4
+*.webm
+*.part
+*.mkv
+*.mp3
+*.m4a
+
+# Config / Temp
+*.ini
+build/
+*.obj
+*.o
