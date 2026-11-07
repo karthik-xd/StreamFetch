@@ -17,7 +17,7 @@ StreamFetch/
 │
 ├── android/                        # Android Edition (Kotlin / Jetpack Compose)
 │   ├── download apk/               # Precompiled Android application package
-│   │   └── StreamFetch.apk         # Ready-to-install Android APK (~11 MB)
+│   │   └── StreamFetch.apk         # Ready-to-install Android APK (~7.4 MB)
 │   ├── app/                        # Android application source & resources
 │   ├── animation/                  # Animated download button graphic & video loop
 │   ├── gradle/                     # Gradle wrapper
@@ -54,7 +54,7 @@ g++ -O2 -std=c++17 main.cpp -o StreamFetch_cli.exe
 - **Pre-built APK**: [`android/download apk/StreamFetch.apk`](android/download%20apk/StreamFetch.apk)
 - **Framework**: 100% Native Kotlin + Jetpack Compose.
 - **Features**:
-  - Zero Python dependency (~11 MB APK size).
+  - Zero Python dependency (~7.4 MB APK size).
   - Share-sheet intent receiver (share directly from YouTube app).
   - Custom storage picker via Android Storage Access Framework (`OpenDocumentTree`).
   - Dynamic looping download animation with real-time progress indicators.
