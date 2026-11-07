@@ -20,9 +20,21 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("streamfetch.jks")
+            storePassword = "streamfetch123"
+            keyAlias = "streamfetch"
+            keyPassword = "streamfetch123"
+            enableV1Signing = true
+            enableV2Signing = true
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -69,7 +81,6 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // Native Java/Kotlin YouTube Stream Extractor (Zero Python)
-    implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.24.4")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
