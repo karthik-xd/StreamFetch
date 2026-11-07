@@ -1,20 +1,40 @@
 # Binaries
 *.exe
+!Windows/StreamFetch.exe
+!Windows/StreamFetch_cli.exe
 !StreamFetch.exe
 !StreamFetch_cli.exe
 ffmpeg.exe
 ffprobe.exe
 
+# Android
+android/.gradle/
+android/.idea/
+android/app/build/
+android/build/
+android/local.properties
+android/gradle-8.13-bin/
+*.iml
+*.zip
+
+# APKs - keep StreamFetch.apk
+*.apk
+!android/download apk/StreamFetch.apk
+!**/StreamFetch.apk
+
 # Media files
-*.mp4
 *.webm
 *.part
 *.mkv
 *.mp3
 *.m4a
 
-# Config / Temp
+# Python / Temp / Caches
+__pycache__/
+*.pyc
+anim_frames/
 *.ini
 build/
 *.obj
 *.o
+.DS_Store
